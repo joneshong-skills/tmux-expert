@@ -98,8 +98,13 @@ tmux resize-pane -t TARGET -L 10     # grow left 10 cells (-R/-U/-D)
 ### Stack & Protocol
 
 ```
-Browser (JS) ←WebSocket→ aiohttp/Python ←subprocess→ tmux CLI
+Browser (JS) ←WebSocket→ Go (coder/websocket) ←tmuxctl→ tmux CLI
 ```
+
+The Workshop reference implementation is a Go static binary (`cmd/tmux-webui`)
+backed by `internal/{ws,tmuxctl,server,autocomplete,metrics,daemon,pwa,relay,upload,tts,update}`.
+Pre-2026-Q2 versions were a single-file aiohttp Python server (`server.py`) and
+many lessons below were learned then; they still apply to the Go port.
 
 | Msg Type | Direction | Payload |
 |----------|-----------|---------|
@@ -135,9 +140,12 @@ Hide excess cells with `display:none` rather than breaking layout.
 
 ## Pitfalls & Hard-Won Lessons
 
-### 1. Missing imports in LaunchAgent
-LaunchAgent = minimal environment. `os.path.expanduser()` fails silently if `os` not imported.
-**Always verify all imports when running as a daemon.**
+### 1. Daemon environment is minimal
+LaunchAgent/systemd start the daemon with a near-empty environment. `$HOME`,
+`$PATH`, locale variables — assume nothing inherited from your interactive
+shell. Resolve `~` programmatically (Go: `os.UserHomeDir`), set PATH
+explicitly in the plist/unit file (see Pitfall 7), and never rely on shell
+rc files running.
 
 ### 2. ANSI strip regex eating content
 Naive `/\x1b\[[0-9;]*m/` misses CSI terminators beyond `m`.
@@ -160,17 +168,36 @@ set `active_window = new_index`, clear content cache, send fresh state.
 **Always `clear()` on switch/create/close.**
 
 ### 7. LaunchAgent PATH
-Set PATH explicitly in plist `<EnvironmentVariables>`. Include `/opt/homebrew/bin` for
-Homebrew tools. Without this, `tmux` and `uv` commands fail.
+Set PATH explicitly in plist `<EnvironmentVariables>` (or systemd `Environment=`).
+Include `/opt/homebrew/bin` for Homebrew tools. Without this, `tmux` itself
+fails — the daemon launches but every `exec.Command("tmux", …)` returns
+"executable file not found in $PATH".
 
 ## Reference Implementation
 
-`~/Claude/apps/tmux-webui/server.py` — single-file aiohttp server (HTML/CSS/JS inline):
-- Session/window/pane management via WebSocket
-- CSS Grid layout engine with presets + drag resize
-- Full ANSI SGR color parser (256-color, RGB, backgrounds)
-- Slash command autocomplete, skill palette with search
-- tmux status bar metrics, window tabs with create/close
+`~/workshop/stations/tmux-webui/` — Go static binary, layout:
+
+- `cmd/tmux-webui/` — main entry (single binary, cross-platform)
+- `internal/ws/` — WebSocket hub + per-pane diff-poll loop (adaptive interval)
+- `internal/tmuxctl/` — typed wrapper over `tmux` CLI (list-panes, capture-pane, send-keys)
+- `internal/server/` — HTTP routes, asset serving, autocomplete + upload endpoints
+- `internal/autocomplete/` — fuzzy slash/at completion. Sources: user-level
+  `~/.claude/{skills,commands,agents}`, plugin marketplaces, Claude Code
+  built-in slash roster (`/compact`, `/model`, …), MCP servers. See
+  `~/workshop/stations/tmux-webui/docs/autocomplete-coverage.md` for scanner architecture.
+- `internal/metrics/` — gopsutil + HTTP-pull provider (Workshop dogfoods sysmon)
+- `internal/daemon/` — `tmux-webui daemon install` writes launchd plist / systemd user unit
+- `internal/network/` — `--lan` flag + QR code (scan from phone)
+- `internal/pwa/` — Progressive Web App install manifest + service worker
+- `internal/upload/` — drag-and-drop file upload into the active pane
+- `internal/tts/` — optional text-to-speech for output streaming
+- `internal/update/` — Sparkle-style self-update
+- `internal/relay/` — bridge to `tmux-relay` skill (pane-pool dispatch)
+
+Features: session/window/pane management via WebSocket, CSS Grid layout
+engine with presets + drag resize, full ANSI SGR color parser (256-color,
+RGB, backgrounds), slash command autocomplete with multi-source scanning,
+tmux status-bar metrics, window tabs with create/close.
 
 ## Additional Resources
 
