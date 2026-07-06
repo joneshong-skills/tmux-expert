@@ -165,3 +165,27 @@ tmux show-option -gv @floatpop_width      # read
   of a *one-shot* popup; the three-piece set here is the canonical example of a
   *persistent* popup. The two divide the labor by popup lifetime.
 - **Provenance:** intelflow report `019f352d037a7b239a76015835918522`.
+
+---
+
+## Local implementation: floatpane.sh (supersedes upstream plugin)
+
+As of 2026-07-06 the workshop runs its own single-file rewrite at
+`~/dotfiles/shell/tmux/floatpane.sh` (dotfiles commit d714c7d..b4b529f), replacing the
+TPM-managed upstream plugin. All entries (prefix+t / prefix+j / root M-p /
+right-click & M-q menus / prefix+P menu) route to it.
+
+Upstream deltas worth remembering:
+- Single-file subcommand dispatch with `fp_` prefixes — eliminates the
+  multi-file `pop()` shadowing infinite recursion (upstream embed path)
+- Safe path-follow: `send-keys cd` only when scratch foreground is a shell
+  (zsh|bash|sh|fish|nu); TUIs are never injected (upstream issue #72)
+- Percent-based zoom steps (±5%, clamp 20–100) keep the popup adaptive
+  after terminal resize; upstream switches to absolute cells on first resize
+- State lives in tmux custom options (`@fp-*` runtime, `@floatpane-*` user),
+  not `setenv -g`
+- `movew` uses explicit `-s "session:"` + colon target: bare `movew -t session`
+  resolves current-window from the triggering client and hits the wrong
+  session in clientless contexts (run-shell -b, headless tests)
+- popup titles advertise the Meta-free menu path, not C-M-* dead keys
+  (cmux has no option-as-meta)
