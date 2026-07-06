@@ -203,6 +203,10 @@ tmux status-bar metrics, window tabs with create/close.
 
 ### Reference Files
 - **`references/ansi-patterns.md`** — ANSI SGR parsing patterns and regex recipes
+- **`references/floating-popup-patterns.md`** — stateful `display-popup` patterns.
+  Load when building a popup that must survive close/reopen (persistent scratch
+  session), rebind keys while open (client-scoped key tables for multi-client), or
+  resize (detach-reopen). One-shot popups don't need it.
 
 ## Continuous Improvement
 
