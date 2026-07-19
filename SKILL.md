@@ -1,12 +1,6 @@
 ---
 name: tmux-expert
-description: >-
-  This skill should be used when the user asks to "control tmux", "build tmux web UI",
-  "tmux send keys", "read tmux pane", "tmux automation", "tmux 控制", "tmux 自動化",
-  "tmux 指令", "remote terminal control", "bridge tmux to web",
-  mentions tmux scripting, programmatic tmux control, tmux web integration,
-  or discusses reading/writing tmux panes, managing sessions/windows/panes,
-  or building interfaces that interact with tmux.
+description: "tmux, expert, control, build, web, ui, send, tmux 控制, tmux 自動化, tmux 指令"
 version: 0.1.0
 ---
 
