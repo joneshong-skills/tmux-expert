@@ -1,4 +1,5 @@
 ---
+disable-model-invocation: true
 name: tmux-expert
 description: "tmux, expert, control, build, web, ui, send, tmux 控制, tmux 自動化, tmux 指令"
 version: 0.1.0
