@@ -63,3 +63,23 @@
 - **Fix**: Added immediate `tmux_status_metrics()` call right after sending initial
   `windows` and `panes` messages on WebSocket connect.
 - **Rule**: Send initial state eagerly on connect, don't wait for the first poll cycle.
+
+### 2026-07-20 — Sidecar resume must preserve per-CLI argv policy
+- **Friction**: A tmux pane showed `codex --yolo`, while the restore sidecar recorded only `codex resume <sid>`.
+- **Fix**: Trace the pane shell pid and child agent pid, then compare live argv, lsof-derived sid, and the generated TSV command; the loss happened before tmux `send-keys`.
+- **Rule**: For agent recovery, inspect shell pid and child agent pid separately, then compare live argv, snapshot row, and restore command.
+
+### 2026-07-20 — WebUI metrics needs source field plus compact consumer
+- **Friction**: tmux-webui received the verbose Claude extra-usage string but dropped the numeric current balance because its generic LLM parser accepted strings only.
+- **Fix**: Preserve `llm_cc_ex_balance_usd` as a narrow numeric exception in the HTTP provider; let the existing pill renderer display only `EX $59.21` and hide the helper field.
+- **Rule**: For statusline bridges, trace source JSON → typed snapshot → frontend segment; missing numeric identity must hide the active pill instead of falling back to a derived display string.
+
+### 2026-07-24 — Validate fzf input in a real tmux PTY
+- **Friction**: Unit inspection could prove generated bindings but not whether literal printable input reached fzf's query buffer.
+- **Fix**: Launched an isolated named tmux session, captured ANSI output, sent literal `erq?`, then confirmed the query line and removed the temporary session.
+- **Rule**: For terminal keymap regressions, pair static argv tests with one disposable PTY capture using literal and special-key sends correctly.
+
+### 2026-07-24 — Check tmux server environment before theme recovery
+- **Friction**: A restored server looked like a Catppuccin failure, but live style options and color capability were healthy.
+- **Fix**: Compared `show-environment -g`, pane process environments, live style options, and a disposable `NO_COLOR`/unset server pair.
+- **Rule**: tmux theme state and child-process color policy are separate surfaces; verify both before reloading TPM or rewriting status styles.
