@@ -170,7 +170,7 @@ fails — the daemon launches but every `exec.Command("tmux", …)` returns
 
 ## Reference Implementation
 
-`~/workshop/stations/tmux-webui/` — Go static binary, layout:
+A companion web bridge (the author runs one as a Go static binary) is laid out as:
 
 - `cmd/tmux-webui/` — main entry (single binary, cross-platform)
 - `internal/ws/` — WebSocket hub + per-pane diff-poll loop (adaptive interval)
@@ -179,7 +179,7 @@ fails — the daemon launches but every `exec.Command("tmux", …)` returns
 - `internal/autocomplete/` — fuzzy slash/at completion. Sources: user-level
   `~/.claude/{skills,commands,agents}`, plugin marketplaces, Claude Code
   built-in slash roster (`/compact`, `/model`, …), MCP servers. See
-  `~/workshop/stations/tmux-webui/docs/autocomplete-coverage.md` for scanner architecture.
+  that bridge's own `docs/autocomplete-coverage.md` for scanner architecture.
 - `internal/metrics/` — gopsutil + HTTP-pull provider (Workshop dogfoods sysmon)
 - `internal/daemon/` — `tmux-webui daemon install` writes launchd plist / systemd user unit
 - `internal/network/` — `--lan` flag + QR code (scan from phone)
